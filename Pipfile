@@ -1,0 +1,21 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+ipython = "*"
+
+[packages]
+pelican = ">=3.5"
+pelican-minify = "==0.9"
+webassets = "*"
+cssmin = "*"
+jupyter = "*"
+nbconvert = ">=4.0"
+ipython = ">=4.0"
+Markdown = ">=2.6.1"
+bs4 = "*"
+
+[requires]
+python_version = "3.7"

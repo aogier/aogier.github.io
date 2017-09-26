@@ -1,0 +1,9 @@
+[submodule "plugins"]
+	path = plugins
+	url = https://github.com/getpelican/pelican-plugins
+[submodule "plugins_external/pelican-ipynb"]
+	path = plugins_external/pelican-ipynb
+	url = https://github.com/danielfrg/pelican-ipynb
+[submodule "elegant"]
+	path = elegant
+	url = https://github.com/Pelican-Elegant/elegant
