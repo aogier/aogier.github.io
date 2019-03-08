@@ -39,8 +39,10 @@ PLUGINS = [
     'minify',
     'assets',
     'pelican-ipynb.markup',
-    'extract_toc'
+    'extract_toc',
+    'tipue_search'
 ]
+DIRECT_TEMPLATES = ['index', 'tags', 'categories', 'authors', 'archives', 'search']
 
 MINIFY = {
     'remove_comments': True,
