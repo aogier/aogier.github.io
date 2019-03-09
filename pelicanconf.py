@@ -40,7 +40,8 @@ PLUGINS = [
     'assets',
     'pelican-ipynb.markup',
     'extract_toc',
-    'tipue_search'
+    'tipue_search',
+    'sitemap'
 ]
 DIRECT_TEMPLATES = ['index', 'tags', 'categories', 'authors', 'archives', 'search']
 
@@ -62,3 +63,18 @@ IPYNB_USE_METACELL = True
 
 CATEGORIES_URL = 'categories.html'
 TAGS_URL = 'tags.html'
+
+SITEMAP = {
+    'format': 'xml',
+    'priorities': {
+        'articles': 0.5,
+        'indexes': 0.5,
+        'pages': 0.5
+    },
+    'changefreqs': {
+        'articles': 'hourly',
+        'indexes': 'hourly',
+        'pages': 'hourly'
+    }
+}
+
