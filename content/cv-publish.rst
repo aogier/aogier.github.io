@@ -13,9 +13,9 @@ Privacy Oriented CV Publishing
 
 Since the day I wrote a curriculum I've maintained two copies of 
 it: they are identical, but the version I put online doesn't have
-my home address/phone numbers, I give them to recuiters/HR only.
+my home address/phone numbers, I give them to recruiters/HR only.
 
-Problem was, the approach I used to wasn't very DRY, a couple of
+Problem was, the approach I used wasn't very DRY, a couple of
 identical tex document with and without my data:
 
 .. code-block:: latex
@@ -33,7 +33,7 @@ and a oneliner for switching:
     sed s/%CONTACTS%/$contacts/ cv.tex > cvtemp.tex
     ./compile cvtemp.tex
 
-time for I change!
+time for change!
 
 New requisites
 ==============
@@ -86,7 +86,7 @@ Build workflow
 
 Build pipeline will have two stages:
 
-- a *build* stage where the pdfs will be generated. Private or
+- a *build* stage where the PDFs will be generated. Private or
   public version is just a matter of choosing an appropriate
   GIT_SUBMODULE_STRATEGY_ when cloning repo in CI
 - a *deploy* stage where I'll put my artifact wherever I'll want
@@ -130,7 +130,7 @@ First of all we define stages:
       - build                                                                                                           
       - deploy                                                                                                              
 
-A build snippet common to either build jobs
+Then a build snippet common to either build jobs
 we will parametrize via environment variables later:
 
 .. code-block:: yaml
@@ -150,8 +150,8 @@ we will parametrize via environment variables later:
           pdflatex -jobname=$OUTPUT_FILE aogier-cv.tex                                                                                                             
 
 Actual build jobs. They will run in parallel on Gitlab
-infrastructure. Two variables drive the submodule strategy
-and the final artifact filename:
+infrastructure, with couple variables driving the submodule
+strategy and the final artifact filename:
 
 .. code-block:: yaml
     
@@ -240,7 +240,3 @@ generation pipeline.
 .. _via link: https://help.github.com/en/articles/linking-to-releases
 .. _via API: https://developer.github.com/v3/repos
     /releases/#get-the-latest-release
-
-
-
-
