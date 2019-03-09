@@ -43,7 +43,8 @@ PLUGINS = [
     'tipue_search',
     'sitemap'
 ]
-DIRECT_TEMPLATES = ['index', 'tags', 'categories', 'authors', 'archives', 'search']
+DIRECT_TEMPLATES = ['index', 'tags',
+                    'categories', 'authors', 'archives', 'search']
 
 MINIFY = {
     'remove_comments': True,
@@ -77,7 +78,3 @@ SITEMAP = {
         'pages': 'hourly'
     }
 }
-
-
-DISQUS_SITENAME = "aogier"
-
