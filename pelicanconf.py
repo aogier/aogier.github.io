@@ -78,3 +78,6 @@ SITEMAP = {
     }
 }
 
+
+DISQUS_SITENAME = "aogier"
+
