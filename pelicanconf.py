@@ -78,3 +78,5 @@ SITEMAP = {
         'pages': 'hourly'
     }
 }
+
+IPYNB_EXPORT_TEMPLATE='notebook_template.tpl'
