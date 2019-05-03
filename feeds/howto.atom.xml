@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>aogier - howto</title><link href="https://aogier.github.io/" rel="alternate"></link><link href="https://aogier.github.io/feeds/howto.atom.xml" rel="self"></link><id>https://aogier.github.io/</id><updated>2019-03-09T00:00:00+01:00</updated><entry><title>Privacy Oriented CV Publishing</title><link href="https://aogier.github.io/privacy-oriented-cv-publishing.html" rel="alternate"></link><published>2019-03-09T00:00:00+01:00</published><updated>2019-03-09T00:00:00+01:00</updated><author><name>Alessandro Ogier</name></author><id>tag:aogier.github.io,2019-03-09:/privacy-oriented-cv-publishing.html</id><summary type="html">&lt;p class="first last"&gt;Publish your full CV and a privacy
+redacted version to put online with a bit
+of devops magic&lt;/p&gt;
+</summary><content type="html">
+&lt;p&gt;Since the day I wrote a curriculum I've maintained two copies of
+it: they are identical, but the version I put online doesn't have
+my home address/phone numbers, I give them to recruiters/HR only.&lt;/p&gt;
+&lt;p&gt;Problem was, the approach I used wasn't very DRY, a couple of
+identical tex document with and without my data:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;\name&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;Alessandro&lt;span class="nb"&gt;}{&lt;/span&gt;Ogier&lt;span class="nb"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;\title&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;System and network administrator, developer&lt;span class="nb"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;\email&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;alessandro.ogier@gmail.com&lt;span class="nb"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;\social&lt;/span&gt;&lt;span class="na"&gt;[linkedin]&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;alessandro-ogier&lt;span class="nb"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;\social&lt;/span&gt;&lt;span class="na"&gt;[github]&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;aogier&lt;span class="nb"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;and a oneliner for switching:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sed s/%CONTACTS%/&lt;span class="nv"&gt;$contacts&lt;/span&gt;/ cv.tex &amp;gt; cvtemp.tex
+./compile cvtemp.tex
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;time for change!&lt;/p&gt;
+&lt;div class="section" id="new-requisites"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id1"&gt;New requisites&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;What I want:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;keep my info away from internet weirdos&lt;/li&gt;
+&lt;li&gt;edit cv code and trigger either doc builds on push&lt;/li&gt;
+&lt;li&gt;having my public CV published on &lt;a class="reference external" href="https://github.com/aogier/aogier.github.io/releases"&gt;github releases&lt;/a&gt; so I
+can further automate stuff, maybe linkedin etc&lt;/li&gt;
+&lt;li&gt;somehow, receiving back the private version so I can
+easily interact w/ headhunters&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="private-repositories"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id2"&gt;Private repositories&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Gitlab offers free private repos &lt;em&gt;and&lt;/em&gt; CI bots that run on
+them so I'll put there my data. Given the current &lt;a class="reference external" href="https://docs.gitlab.com/ee/user/project/new_ci_build_permissions_model.html"&gt;CI permission
+model&lt;/a&gt;, I can add a private repo as a submodule in the main
+project using a relative pointer that will work on gitlab and
+on my machine:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;➜  oggei@cane ~/dev/cv git:&lt;span class="o"&gt;(&lt;/span&gt;master&lt;span class="o"&gt;)&lt;/span&gt;  cat .gitmodules
+&lt;span class="o"&gt;[&lt;/span&gt;submodule &lt;span class="s2"&gt;"private"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="nv"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; private
+&lt;span class="nv"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; ../private-curriculum.git
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Private repo content will be protected by default wherever the
+request come from. If a &lt;tt class="docutils literal"&gt;private&lt;/tt&gt; subdirectory cannot be found,
+relevant latex include will simply skip:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;\IfFileExists&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;private/contacts.tex&lt;span class="nb"&gt;}{&lt;/span&gt;&lt;span class="k"&gt;\include&lt;/span&gt;&lt;span class="nb"&gt;{&lt;/span&gt;private/contacts&lt;span class="nb"&gt;}}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Neat!&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="section" id="building-cv"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id3"&gt;Building CV&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="section" id="build-workflow"&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="#id4"&gt;Build workflow&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Build pipeline will have two stages:&lt;/p&gt;
+&lt;ul class="simple"&gt;
+&lt;li&gt;a &lt;em&gt;build&lt;/em&gt; stage where the PDFs will be generated. Private or
+public version is just a matter of choosing an appropriate
+&lt;a class="reference external" href="https://docs.gitlab.com/ee/ci/yaml/#git-submodule-strategy"&gt;GIT_SUBMODULE_STRATEGY&lt;/a&gt; when cloning repo in CI&lt;/li&gt;
+&lt;li&gt;a &lt;em&gt;deploy&lt;/em&gt; stage where I'll put my artifact wherever I'll want&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class="section" id="specialized-build-container"&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="#id5"&gt;Specialized build container&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;In order to keep build times low a &lt;a class="reference external" href="https://hub.docker.com/r/aogier/latex"&gt;simple container&lt;/a&gt;
+comes handy:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt;&lt;span class="s"&gt; debian&lt;/span&gt;
+
+&lt;span class="k"&gt;RUN&lt;/span&gt; apt-get update &lt;span class="se"&gt;\&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get install -y &lt;span class="se"&gt;\&lt;/span&gt;
+        texlive-latex-base &lt;span class="se"&gt;\&lt;/span&gt;
+        texlive-binaries &lt;span class="se"&gt;\&lt;/span&gt;
+        texlive-latex-extra &lt;span class="se"&gt;\&lt;/span&gt;
+        curl &lt;span class="se"&gt;\&lt;/span&gt;
+        jq
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="build-pipeline"&gt;
+&lt;h3&gt;&lt;a class="toc-backref" href="#id6"&gt;Build pipeline&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;Latest version &lt;a class="reference external" href="https://gitlab.com/aogier/public-curriculum/blob/master/.gitlab-ci.yml"&gt;is here&lt;/a&gt;, I'll split and comment this one.&lt;/p&gt;
+&lt;p&gt;First of all we define stages:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;stages&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;build&lt;/span&gt;
+  &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;deploy&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Then a build snippet common to either build jobs
+we will parametrize via environment variables later:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;.common_job&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nl"&gt;&amp;amp;common_job&lt;/span&gt;
+  &lt;span class="nt"&gt;stage&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;build&lt;/span&gt;
+  &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;aogier/latex&lt;/span&gt;
+  &lt;span class="nt"&gt;artifacts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;paths&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;$OUTPUT_FILE.pdf&lt;/span&gt;
+  &lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="p p-Indicator"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="no"&gt;latex aogier-cv.tex;&lt;/span&gt;
+      &lt;span class="no"&gt;latex aogier-cv.tex;&lt;/span&gt;
+      &lt;span class="no"&gt;bibtex aogier-cv;&lt;/span&gt;
+      &lt;span class="no"&gt;latex aogier-cv.tex;&lt;/span&gt;
+      &lt;span class="no"&gt;pdflatex -jobname=$OUTPUT_FILE aogier-cv.tex&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;Actual build jobs. They will run in parallel on Gitlab
+infrastructure, with couple variables driving the submodule
+strategy and the final artifact filename:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;build_private_cv&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;variables&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;GIT_SUBMODULE_STRATEGY&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;normal&lt;/span&gt;
+    &lt;span class="nt"&gt;OUTPUT_FILE&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;aogier-cv.private&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nv"&gt;*common_job&lt;/span&gt;
+
+&lt;span class="nt"&gt;build_public_cv&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;variables&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;GIT_SUBMODULE_STRATEGY&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;none&lt;/span&gt;
+    &lt;span class="nt"&gt;OUTPUT_FILE&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;aogier-cv.public&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;&amp;lt;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nv"&gt;*common_job&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;p&gt;The deploy job, that only runs on tagged refs, interact via
+github &lt;a class="reference external" href="https://developer.github.com/v3/repos/releases/"&gt;releases v3 API&lt;/a&gt; using a &lt;a class="reference external" href="https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line"&gt;personal access token&lt;/a&gt; specified in
+gitlab project's config as a &lt;a class="reference external" href="https://docs.gitlab.com/ee/ci/variables/"&gt;CI variable&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;At first it POST a release and get his id, then use it for the
+file upload:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nt"&gt;deploy_public_cv&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="nt"&gt;variables&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="nt"&gt;REPO&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;https://api.github.com/repos/aogier/aogier.github.io&lt;/span&gt;
+    &lt;span class="nt"&gt;AUTH_HEADER&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="nt"&gt;"Authorization&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;token $GITHUB_TOKEN"&lt;/span&gt;
+    &lt;span class="nt"&gt;UPLOAD_URL&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;https://uploads.github.com/repos/aogier/aogier.github.io&lt;/span&gt;
+    &lt;span class="nt"&gt;FILENAME&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;aogier-curriculum.pdf&lt;/span&gt;
+  &lt;span class="nt"&gt;stage&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;deploy&lt;/span&gt;
+  &lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;alpine&lt;/span&gt;
+  &lt;span class="nt"&gt;only&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;tags&lt;/span&gt;
+  &lt;span class="nt"&gt;before_script&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;apk add --no-cache jq curl&lt;/span&gt;
+  &lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# preparing data and POSTing the new release&lt;/span&gt;
+    &lt;span class="c1"&gt;#&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="p p-Indicator"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="no"&gt;json_body="$(printf&lt;/span&gt;
+      &lt;span class="no"&gt;'{"tag_name":"%s","body":"# Alessandro Ogier CV\\nversion %s","name":"aogier CV"}'&lt;/span&gt;
+      &lt;span class="no"&gt;$CI_COMMIT_TAG $CI_COMMIT_TAG)"&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="p p-Indicator"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="no"&gt;release_raw="$(curl&lt;/span&gt;
+      &lt;span class="no"&gt;$REPO/releases&lt;/span&gt;
+      &lt;span class="no"&gt;-X POST&lt;/span&gt;
+      &lt;span class="no"&gt;-H "$AUTH_HEADER"&lt;/span&gt;
+      &lt;span class="no"&gt;-d "$json_body")"&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;echo $release_raw | jq .&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;release_id=$(echo $release_raw | jq -r .id)&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="l l-Scalar l-Scalar-Plain"&gt;echo release id is $release_id&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# posting public file to release id&lt;/span&gt;
+    &lt;span class="c1"&gt;#&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="p p-Indicator"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="no"&gt;response=$(curl&lt;/span&gt;
+      &lt;span class="no"&gt;$UPLOAD_URL/releases/$release_id/assets\?name\=$FILENAME&lt;/span&gt;
+      &lt;span class="no"&gt;-X POST&lt;/span&gt;
+      &lt;span class="no"&gt;-H "$AUTH_HEADER"&lt;/span&gt;
+      &lt;span class="no"&gt;-H 'Content-Type: application/pdf'&lt;/span&gt;
+      &lt;span class="no"&gt;-F 'data=@aogier-cv.public.pdf' | jq .url)&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# exit non-zero if anything goes wrong&lt;/span&gt;
+    &lt;span class="c1"&gt;#&lt;/span&gt;
+    &lt;span class="p p-Indicator"&gt;-&lt;/span&gt; &lt;span class="p p-Indicator"&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class="no"&gt;if [[ $response == null ]]; then&lt;/span&gt;
+      &lt;span class="no"&gt;exit 1;&lt;/span&gt;
+      &lt;span class="no"&gt;fi&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="section" id="further-steps"&gt;
+&lt;h2&gt;&lt;a class="toc-backref" href="#id7"&gt;Further steps&lt;/a&gt;&lt;/h2&gt;
+&lt;p&gt;Now we have a &lt;a class="reference external" href="https://github.com/aogier/aogier.github.io/releases"&gt;release list&lt;/a&gt; whose latest item is programmatically
+accessible via github either &lt;a class="reference external" href="https://help.github.com/en/articles/linking-to-releases"&gt;via link&lt;/a&gt; or &lt;a class="reference external" href="https://developer.github.com/v3/repos/releases/#get-the-latest-release"&gt;via API&lt;/a&gt;. I'll
+use this feature in order to include latest CV on this site
+generation pipeline.&lt;/p&gt;
+&lt;/div&gt;
+</content><category term="devops"></category></entry></feed>

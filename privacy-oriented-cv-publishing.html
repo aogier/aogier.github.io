@@ -1,0 +1,150 @@
+<!DOCTYPE html><html lang=it><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width, initial-scale=1.0"><meta name=author content="Alessandro Ogier"><meta property=og:type content=article><meta name=twitter:card content=summary><meta name=keywords content="devops, howto, "><meta property=og:title content="Privacy Oriented CV Publishing "><meta property=og:url content=https://aogier.github.io/privacy-oriented-cv-publishing.html><meta property=og:description content="Publish your full CV and a privacy redacted version to put online with a bit of devops magic"><meta property=og:site_name content=aogier><meta property=og:article:author content="Alessandro Ogier"><meta property=og:article:published_time content=2019-03-09T00:00:00+01:00><meta name=twitter:title content="Privacy Oriented CV Publishing "><meta name=twitter:description content="Publish your full CV and a privacy redacted version to put online with a bit of devops magic"><title>Privacy Oriented CV Publishing · aogier</title><link href=//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css rel=stylesheet><link href=//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.css rel=stylesheet><link rel=stylesheet href=https://aogier.github.io/theme/css/style.min.css?8bdcf96a><link href=https://aogier.github.io/feeds/all.atom.xml type=application/atom+xml rel=alternate title="aogier - Full Atom Feed"><script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-107095482-1', 'auto');
+    ga('send', 'pageview');
+</script></head><body><div id=content-sans-footer><div class="navbar navbar-static-top"><div class=navbar-inner><div class=container-fluid><a class="btn btn-navbar" data-toggle=collapse data-target=.nav-collapse><span class=icon-bar></span><span class=icon-bar></span><span class=icon-bar></span></a><a href=https://aogier.github.io/ class=brand><span class=site-name>aogier</span></a><div class="nav-collapse collapse"><ul class="nav pull-right top-menu"><li><a href=https://aogier.github.io>Home</a></li><li><a href=https://aogier.github.io/categories.html>Categories</a></li><li><a href=https://aogier.github.io/tags.html>Tags</a></li><li><a href=https://aogier.github.io/archives>Archives</a></li><li><form class=navbar-search action=https://aogier.github.io/search.html onsubmit="return validateForm(this.elements['q'].value);"><input type=text class=search-query placeholder=Search name=q id=tipue_search_input></form></li></ul></div></div></div></div><div class=container-fluid><div class=row-fluid><div class=span1></div><div class=span10><article itemscope><div class=row-fluid><header class="page-header span10 offset2"><h1><a href=https://aogier.github.io/privacy-oriented-cv-publishing.html> Privacy Oriented CV Publishing </a></h1></header></div><div class=row-fluid><div class="span2 table-of-content"><nav><h4>Contents</h4><div class=toc id><ul class=simple><li><a class="reference internal" href=#new-requisites id=id1>New requisites</a></li><li><a class="reference internal" href=#private-repositories id=id2>Private repositories</a></li><li><a class="reference internal" href=#building-cv id=id3>Building CV</a><ul><li><a class="reference internal" href=#build-workflow id=id4>Build workflow</a></li><li><a class="reference internal" href=#specialized-build-container id=id5>Specialized build container</a></li><li><a class="reference internal" href=#build-pipeline id=id6>Build pipeline</a></li></ul></li><li><a class="reference internal" href=#further-steps id=id7>Further steps</a></li></ul></div></nav></div><div class="span8 article-content"><p>Since the day I wrote a curriculum I've maintained two copies of it: they are identical, but the version I put online doesn't have my home address/phone numbers, I give them to recruiters/HR only.</p><p>Problem was, the approach I used wasn't very DRY, a couple of identical tex document with and without my data:</p><div class=highlight><pre><span></span><span class=k>\name</span><span class=nb>{</span>Alessandro<span class=nb>}{</span>Ogier<span class=nb>}</span>
+<span class=k>\title</span><span class=nb>{</span>System and network administrator, developer<span class=nb>}</span>
+<span class=k>\email</span><span class=nb>{</span>alessandro.ogier@gmail.com<span class=nb>}</span>
+<span class=k>\social</span><span class=na>[linkedin]</span><span class=nb>{</span>alessandro-ogier<span class=nb>}</span>
+<span class=k>\social</span><span class=na>[github]</span><span class=nb>{</span>aogier<span class=nb>}</span>
+</pre></div><p>and a oneliner for switching:</p><div class=highlight><pre><span></span>sed s/%CONTACTS%/<span class=nv>$contacts</span>/ cv.tex &gt; cvtemp.tex
+./compile cvtemp.tex
+</pre></div><p>time for change!</p><div class=section id=new-requisites><h2><a class=toc-backref href=#id1>New requisites</a></h2><p>What I want:</p><ul class=simple><li>keep my info away from internet weirdos</li><li>edit cv code and trigger either doc builds on push</li><li>having my public CV published on <a class="reference external" href=https://github.com/aogier/aogier.github.io/releases>github releases</a> so I can further automate stuff, maybe linkedin etc</li><li>somehow, receiving back the private version so I can easily interact w/ headhunters</li></ul></div><div class=section id=private-repositories><h2><a class=toc-backref href=#id2>Private repositories</a></h2><p>Gitlab offers free private repos <em>and</em> CI bots that run on them so I'll put there my data. Given the current <a class="reference external" href=https://docs.gitlab.com/ee/user/project/new_ci_build_permissions_model.html>CI permission model</a>, I can add a private repo as a submodule in the main project using a relative pointer that will work on gitlab and on my machine:</p><div class=highlight><pre><span></span>➜  oggei@cane ~/dev/cv git:<span class=o>(</span>master<span class=o>)</span>  cat .gitmodules
+<span class=o>[</span>submodule <span class=s2>"private"</span><span class=o>]</span>
+<span class=nv>path</span> <span class=o>=</span> private
+<span class=nv>url</span> <span class=o>=</span> ../private-curriculum.git
+</pre></div><p>Private repo content will be protected by default wherever the request come from. If a <tt class="docutils literal">private</tt> subdirectory cannot be found, relevant latex include will simply skip:</p><div class=highlight><pre><span></span><span class=k>\IfFileExists</span><span class=nb>{</span>private/contacts.tex<span class=nb>}{</span><span class=k>\include</span><span class=nb>{</span>private/contacts<span class=nb>}}</span>
+</pre></div><p>Neat!</p></div><div class=section id=building-cv><h2><a class=toc-backref href=#id3>Building CV</a></h2><div class=section id=build-workflow><h3><a class=toc-backref href=#id4>Build workflow</a></h3><p>Build pipeline will have two stages:</p><ul class=simple><li>a <em>build</em> stage where the PDFs will be generated. Private or public version is just a matter of choosing an appropriate <a class="reference external" href=https://docs.gitlab.com/ee/ci/yaml/#git-submodule-strategy>GIT_SUBMODULE_STRATEGY</a> when cloning repo in CI</li><li>a <em>deploy</em> stage where I'll put my artifact wherever I'll want</li></ul></div><div class=section id=specialized-build-container><h3><a class=toc-backref href=#id5>Specialized build container</a></h3><p>In order to keep build times low a <a class="reference external" href=https://hub.docker.com/r/aogier/latex>simple container</a> comes handy:</p><div class=highlight><pre><span></span><span class=k>FROM</span><span class=s> debian</span>
+
+<span class=k>RUN</span> apt-get update <span class=se>\</span>
+    <span class=o>&amp;&amp;</span> apt-get install -y <span class=se>\</span>
+        texlive-latex-base <span class=se>\</span>
+        texlive-binaries <span class=se>\</span>
+        texlive-latex-extra <span class=se>\</span>
+        curl <span class=se>\</span>
+        jq
+</pre></div></div><div class=section id=build-pipeline><h3><a class=toc-backref href=#id6>Build pipeline</a></h3><p>Latest version <a class="reference external" href=https://gitlab.com/aogier/public-curriculum/blob/master/.gitlab-ci.yml>is here</a>, I'll split and comment this one.</p><p>First of all we define stages:</p><div class=highlight><pre><span></span><span class=nt>stages</span><span class=p>:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">build</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
+</pre></div><p>Then a build snippet common to either build jobs we will parametrize via environment variables later:</p><div class=highlight><pre><span></span><span class=nt>.common_job</span><span class=p>:</span> <span class=nl>&amp;common_job</span>
+  <span class=nt>stage</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">build</span>
+  <span class=nt>image</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">aogier/latex</span>
+  <span class=nt>artifacts</span><span class=p>:</span>
+    <span class=nt>paths</span><span class=p>:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">$OUTPUT_FILE.pdf</span>
+  <span class=nt>script</span><span class=p>:</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">&gt;</span>
+      <span class=no>latex aogier-cv.tex;</span>
+      <span class=no>latex aogier-cv.tex;</span>
+      <span class=no>bibtex aogier-cv;</span>
+      <span class=no>latex aogier-cv.tex;</span>
+      <span class=no>pdflatex -jobname=$OUTPUT_FILE aogier-cv.tex</span>
+</pre></div><p>Actual build jobs. They will run in parallel on Gitlab infrastructure, with couple variables driving the submodule strategy and the final artifact filename:</p><div class=highlight><pre><span></span><span class=nt>build_private_cv</span><span class=p>:</span>
+  <span class=nt>variables</span><span class=p>:</span>
+    <span class=nt>GIT_SUBMODULE_STRATEGY</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">normal</span>
+    <span class=nt>OUTPUT_FILE</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">aogier-cv.private</span>
+  <span class=nt>&lt;&lt;</span><span class=p>:</span> <span class=nv>*common_job</span>
+
+<span class=nt>build_public_cv</span><span class=p>:</span>
+  <span class=nt>variables</span><span class=p>:</span>
+    <span class=nt>GIT_SUBMODULE_STRATEGY</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">none</span>
+    <span class=nt>OUTPUT_FILE</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">aogier-cv.public</span>
+  <span class=nt>&lt;&lt;</span><span class=p>:</span> <span class=nv>*common_job</span>
+</pre></div><p>The deploy job, that only runs on tagged refs, interact via github <a href=https://developer.github.com/v3/repos/releases/ class="reference external">releases v3 API</a> using a <a class="reference external" href=https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line>personal access token</a> specified in gitlab project's config as a <a href=https://docs.gitlab.com/ee/ci/variables/ class="reference external">CI variable</a>.</p><p>At first it POST a release and get his id, then use it for the file upload:</p><div class=highlight><pre><span></span><span class=nt>deploy_public_cv</span><span class=p>:</span>
+  <span class=nt>variables</span><span class=p>:</span>
+    <span class=nt>REPO</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">https://api.github.com/repos/aogier/aogier.github.io</span>
+    <span class=nt>AUTH_HEADER</span><span class=p>:</span> <span class=nt>"Authorization</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">token $GITHUB_TOKEN"</span>
+    <span class=nt>UPLOAD_URL</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">https://uploads.github.com/repos/aogier/aogier.github.io</span>
+    <span class=nt>FILENAME</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">aogier-curriculum.pdf</span>
+  <span class=nt>stage</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">deploy</span>
+  <span class=nt>image</span><span class=p>:</span> <span class="l l-Scalar l-Scalar-Plain">alpine</span>
+  <span class=nt>only</span><span class=p>:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">tags</span>
+  <span class=nt>before_script</span><span class=p>:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">apk add --no-cache jq curl</span>
+  <span class=nt>script</span><span class=p>:</span>
+
+    <span class=c1># preparing data and POSTing the new release</span>
+    <span class=c1>#</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">&gt;</span>
+      <span class=no>json_body="$(printf</span>
+      <span class=no>'{"tag_name":"%s","body":"# Alessandro Ogier CV\\nversion %s","name":"aogier CV"}'</span>
+      <span class=no>$CI_COMMIT_TAG $CI_COMMIT_TAG)"</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">&gt;</span>
+      <span class=no>release_raw="$(curl</span>
+      <span class=no>$REPO/releases</span>
+      <span class=no>-X POST</span>
+      <span class=no>-H "$AUTH_HEADER"</span>
+      <span class=no>-d "$json_body")"</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">echo $release_raw | jq .</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">release_id=$(echo $release_raw | jq -r .id)</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">echo release id is $release_id</span>
+
+    <span class=c1># posting public file to release id</span>
+    <span class=c1>#</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">&gt;</span>
+      <span class=no>response=$(curl</span>
+      <span class=no>$UPLOAD_URL/releases/$release_id/assets\?name\=$FILENAME</span>
+      <span class=no>-X POST</span>
+      <span class=no>-H "$AUTH_HEADER"</span>
+      <span class=no>-H 'Content-Type: application/pdf'</span>
+      <span class=no>-F 'data=@aogier-cv.public.pdf' | jq .url)</span>
+
+    <span class=c1># exit non-zero if anything goes wrong</span>
+    <span class=c1>#</span>
+    <span class="p p-Indicator">-</span> <span class="p p-Indicator">&gt;</span>
+      <span class=no>if [[ $response == null ]]; then</span>
+      <span class=no>exit 1;</span>
+      <span class=no>fi</span>
+</pre></div></div></div><div class=section id=further-steps><h2><a class=toc-backref href=#id7>Further steps</a></h2><p>Now we have a <a class="reference external" href=https://github.com/aogier/aogier.github.io/releases>release list</a> whose latest item is programmatically accessible via github either <a class="reference external" href=https://help.github.com/en/articles/linking-to-releases>via link</a> or <a class="reference external" href=https://developer.github.com/v3/repos/releases/#get-the-latest-release>via API</a>. I'll use this feature in order to include latest CV on this site generation pipeline.</p></div><div></div><section><div class=accordion id=accordion2><div class=accordion-group><div class=accordion-heading><a class="accordion-toggle disqus-comment-count" data-toggle=collapse data-parent=#accordion2 href=https://aogier.github.io/privacy-oriented-cv-publishing.html#disqus_thread , id=disqus-accordion-toggle> Comments </a></div><div id=disqus_thread class="accordion-body collapse"><div class=accordion-inner><div class=comments><div id=disqus_thread></div><script type=text/javascript>
+    var disqus_shortname = 'aogier';
+        var disqus_identifier = 'https://aogier.github.io/privacy-oriented-cv-publishing.html';
+    var disqus_url = 'https://aogier.github.io/privacy-oriented-cv-publishing.html';
+
+    (function() {
+         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+         dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+         (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+     })();
+</script><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=http://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div></div></div></div></div></section><hr></div><section><div class=span2 style=float:right;font-size:0.9em;><h4>Published</h4><time itemprop=dateCreated datetime=2019-03-09T00:00:00+01:00>Mar 9, 2019</time><h4>Category</h4><a class=category-link href=https://aogier.github.io/categories.html#howto-ref>howto</a><h4>Tags</h4><ul class="list-of-tags tags-in-article"><li><a href=https://aogier.github.io/tags.html#devops-ref>devops <span>1</span></a></li></ul><h4>Contact</h4><a href=# title="My You can add links in your config file Profile" class=sidebar-social-links target=_blank><i class="fa fa-you can add links in your config file sidebar-social-links"></i></a><a href=# title="My Another social link Profile" class=sidebar-social-links target=_blank><i class="fa fa-another social link sidebar-social-links"></i></a></div></section></div></article></div><div class=span1></div></div></div><div id=push></div></div><footer><div id=footer><ul class=footer-content><li class=elegant-power>Powered by <a href=http://getpelican.com/ title="Pelican Home Page">Pelican</a>. Theme: <a href=https://github.com/Pelican-Elegant/elegant/ title="Theme Elegant Home Page">Elegant</a></li></ul></div></footer><script src=//code.jquery.com/jquery.min.js></script><script src=//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js></script><script>
+            function validateForm(query)
+            {
+                return (query.length > 0);
+            }
+        </script><script type=text/javascript>
+var disqus_shortname = 'aogier';
+(function () {
+    var s = document.createElement('script'); s.async = true;
+    s.type = 'text/javascript';
+    s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script><script language=javascript type=text/javascript>
+function uncollapse() {
+    if (window.location.hash.match(/^#comment-\d+$/)) {
+        $('#disqus_thread').collapse('show');
+    }
+}
+</script><script type=text/javascript language=JavaScript>
+uncollapse();
+window.onhashchange=function(){
+    if (window.location.hash.match(/^#comment-\d+$/))
+        window.location.reload(true);
+}
+</script><script>
+$('#disqus_thread').on('shown', function () {
+    var link = document.getElementById('disqus-accordion-toggle');
+    var old_innerHTML = link.innerHTML;
+    $(link).fadeOut(500, function() {
+        $(this).text('Click here to hide comments').fadeIn(500);
+    });
+    $('#disqus_thread').on('hidden', function () {
+        $(link).fadeOut(500, function() {
+            $(this).text(old_innerHTML).fadeIn(500);
+        });
+    })
+})
+</script></body></html>
